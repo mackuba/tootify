@@ -58,6 +58,14 @@ class Tootify
     p record
 
     text = expand_facets(record)
+
+    if link = link_embed(record)
+      if !text.include?(link)
+        text += ' ' unless text.end_with?(' ')
+        text += link
+      end
+    end
+
     p @mastodon.post_status(text)
   end
 
@@ -79,5 +87,9 @@ class Tootify
     end
 
     bytes.pack('C*').force_encoding('UTF-8')
+  end
+
+  def link_embed(record)
+    record['embed'] && record['embed']['external'] && record['embed']['external']['uri']
   end
 end
