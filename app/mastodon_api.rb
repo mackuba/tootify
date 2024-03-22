@@ -31,8 +31,6 @@ class MastodonAPI
   end
 
   def oauth_login_with_password(client_id, client_secret, email, password, scopes)
-    url = URI("https://#{@host}/oauth/token")
-
     params = {
       client_id: client_id,
       client_secret: client_secret,
@@ -42,14 +40,7 @@ class MastodonAPI
       password: password
     }
 
-    response = Net::HTTP.post_form(url, params)
-    status = response.code.to_i
-
-    if status / 100 == 2
-      JSON.parse(response.body)
-    else
-      raise APIError.new(response)
-    end
+    post_json("https://#{@host}/oauth/token", params)
   end
 
   def account_info
