@@ -12,6 +12,7 @@ def run(argv)
   when 'login'
     login(args[1])
   when 'check'
+    $app.sync
   else
     print_help
   end

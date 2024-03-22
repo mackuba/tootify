@@ -67,6 +67,12 @@ class MastodonAPI
     get_json("/accounts/#{user_id}/statuses", params)
   end
 
+  def post_status(text)
+    post_json("/statuses", {
+      status: text
+    })
+  end
+
   def get_json(path, params = {})
     url = URI(path.start_with?('https://') ? path : @root + path)
     url.query = URI.encode_www_form(params) if params
@@ -81,6 +87,28 @@ class MastodonAPI
       JSON.parse(response.body)
     elsif status / 100 == 3
       get_json(response['Location'])
+    else
+      raise APIError.new(response)
+    end
+  end
+
+  def post_json(path, params = {})
+    url = URI(path.start_with?('https://') ? path : @root + path)
+
+    headers = {}
+    headers['Authorization'] = "Bearer #{@access_token}" if @access_token
+
+    request = Net::HTTP::Post.new(url, headers)
+    request.form_data = params
+
+    response = Net::HTTP.start(url.hostname, url.port, :use_ssl => true) do |http|
+      http.request(request)
+    end
+
+    status = response.code.to_i
+
+    if status / 100 == 2
+      JSON.parse(response.body)
     else
       raise APIError.new(response)
     end
