@@ -56,6 +56,28 @@ class Tootify
 
   def post_to_mastodon(record)
     p record
-    p @mastodon.post_status(record['text'])
+
+    text = expand_facets(record)
+    p @mastodon.post_status(text)
+  end
+
+  def expand_facets(record)
+    bytes = record['text'].bytes
+    offset = 0
+
+    if facets = record['facets']
+      facets.sort_by { |f| f['index']['byteStart'] }.each do |f|
+        if link = f['features'].detect { |ft| ft['$type'] == 'app.bsky.richtext.facet#link' }
+          left = f['index']['byteStart']
+          right = f['index']['byteEnd']
+          content = link['uri'].bytes
+          
+          bytes[(left + offset) ... (right + offset)] = content
+          offset += content.length - (right - left)
+        end
+      end
+    end
+
+    bytes.pack('C*').force_encoding('UTF-8')
   end
 end
