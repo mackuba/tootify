@@ -1,12 +1,22 @@
 require 'io/console'
+
+require_relative 'bluesky_account'
 require_relative 'mastodon_account'
 
 class Tootify
   def initialize
+    @bluesky = BlueskyAccount.new
     @mastodon = MastodonAccount.new
   end
 
-  def login_bluesky
+  def login_bluesky(handle)
+    handle = handle.gsub(/^@/, '')
+
+    print "App password: "
+    password = STDIN.noecho(&:gets).chomp
+    puts
+
+    @bluesky.login_with_password(handle, password)
   end
 
   def login_mastodon(handle)
