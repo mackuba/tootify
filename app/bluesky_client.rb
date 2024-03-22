@@ -10,6 +10,7 @@ class BlueskyClient
 
   def initialize
     @config = File.exist?(CONFIG_FILE) ? YAML.load(File.read(CONFIG_FILE)) : {}
+    Dir.mkdir('config') unless Dir.exist?('config')
   end
 
   def host
