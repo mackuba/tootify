@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require_relative 'app/tootify'
+
+$app = Tootify.new
+
+def run(argv)
+  options, args = argv.partition { |x| x.start_with?('-') }
+
+  case args.first
+  when 'login'
+    login(args[1])
+  when 'check'
+  else
+    print_help
+  end
+end
+
+def print_help
+  puts "Usage: #{$PROGRAM_NAME} login mastodon@account | login @bluesky"
+  puts "       #{$PROGRAM_NAME} check"
+  exit 1
+end
+
+def login(name)
+  if name =~ /\A[^@]+@[^@]+\z/
+    $app.login_mastodon(name)
+  elsif name =~ /\A@[^@]+\z/
+    $app.login_bluesky(name)
+  elsif name.nil?
+    print_help
+  else
+    puts "Invalid handle: #{name.inspect}"
+    exit 1
+  end
+end
+
+run(ARGV)
