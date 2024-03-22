@@ -3,16 +3,24 @@
 require 'bundler/setup'
 require_relative 'app/tootify'
 
-$app = Tootify.new
-
 def run(argv)
   options, args = argv.partition { |x| x.start_with?('-') }
+
+  app = Tootify.new
+
+  options.each do |o|
+    if o.start_with?('--interval=')
+      app.check_interval = o.split('=')[1].to_i
+    end
+  end
 
   case args.first
   when 'login'
     login(args[1])
   when 'check'
-    $app.sync
+    app.sync
+  when 'watch'
+    app.watch
   else
     print_help
   end
@@ -25,10 +33,12 @@ def print_help
 end
 
 def login(name)
+  app = Tootify.new
+
   if name =~ /\A[^@]+@[^@]+\z/
-    $app.login_mastodon(name)
+    app.login_mastodon(name)
   elsif name =~ /\A@[^@]+\z/
-    $app.login_bluesky(name)
+    app.login_bluesky(name)
   elsif name.nil?
     print_help
   else

@@ -4,9 +4,12 @@ require_relative 'bluesky_account'
 require_relative 'mastodon_account'
 
 class Tootify
+  attr_accessor :check_interval
+
   def initialize
     @bluesky = BlueskyAccount.new
     @mastodon = MastodonAccount.new
+    @check_interval = 60
   end
 
   def login_bluesky(handle)
@@ -51,6 +54,13 @@ class Tootify
       post_to_mastodon(record['value'])
 
       @bluesky.delete_record_at(like_uri)
+    end
+  end
+
+  def watch
+    loop do
+      sync
+      sleep @check_interval
     end
   end
 
