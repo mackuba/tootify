@@ -82,7 +82,22 @@ class Tootify
       end
     end
 
-    p @mastodon.post_status(text)
+    if images = attached_images(record)
+      media_ids = []
+
+      images.each do |image|
+        alt = image['alt']
+        cid = image['image']['ref']['$link']
+        mime = image['image']['mimeType']
+
+        data = @bluesky.fetch_blob(cid)
+
+        uploaded_media = @mastodon.upload_media(data, cid, mime, alt)
+        media_ids << uploaded_media['id']
+      end
+    end
+
+    p @mastodon.post_status(text, media_ids)
   end
 
   def expand_facets(record)
@@ -125,6 +140,19 @@ class Tootify
         embed['record']['uri']
       when 'app.bsky.embed.recordWithMedia'
         embed['record']['record']['uri']
+      else
+        nil
+      end
+    end
+  end
+
+  def attached_images(record)
+    if embed = record['embed']
+      case embed['$type']
+      when 'app.bsky.embed.images'
+        embed['images']
+      when 'app.bsky.embed.recordWithMedia'
+        embed['media']['images']
       else
         nil
       end

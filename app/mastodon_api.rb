@@ -58,10 +58,34 @@ class MastodonAPI
     get_json("/accounts/#{user_id}/statuses", params)
   end
 
-  def post_status(text)
-    post_json("/statuses", {
-      status: text
-    })
+  def post_status(text, media_ids = nil)
+    params = { status: text }
+    params['media_ids[]'] = media_ids if media_ids
+
+    post_json("/statuses", params)
+  end
+
+  def upload_media(data, filename, content_type, alt = nil)
+    url = URI("https://#{@host}/api/v2/media")
+    headers = { 'Authorization' => "Bearer #{@access_token}" }
+
+    form_data = [
+      ['file', data, { :filename => filename, :content_type => content_type }],
+      ['description', alt.to_s]
+    ]
+
+    request = Net::HTTP::Post.new(url, headers)
+    request.set_form(form_data, 'multipart/form-data')
+
+    response = Net::HTTP.start(url.hostname, url.port, :use_ssl => true) do |http|
+      http.request(request)
+    end
+
+    if response.code.to_i / 100 == 2
+      JSON.parse(response.body)
+    else
+      raise APIError.new(response)
+    end
   end
 
   def get_json(path, params = {})

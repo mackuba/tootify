@@ -40,6 +40,11 @@ class BlueskyAccount
     @sky.get_request('com.atproto.repo.getRecord', { repo: repo, collection: collection, rkey: rkey })
   end
 
+  def fetch_blob(cid)
+    # todo
+    @sky.get_blob('com.atproto.sync.getBlob', { did: @sky.user.did, cid: cid })
+  end
+
   def delete_record_at(uri)
     repo, collection, rkey = uri.split('/')[2..4]
 
