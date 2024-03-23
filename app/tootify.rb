@@ -106,7 +106,16 @@ class Tootify
   end
 
   def link_embed(record)
-    record['embed'] && record['embed']['external'] && record['embed']['external']['uri']
+    if embed = record['embed']
+      case embed['$type']
+      when 'app.bsky.embed.external'
+        embed['external']['uri']
+      when 'app.bsky.embed.recordWithMedia'
+        embed['media']['external'] && embed['media']['external']['uri']
+      else
+        nil
+      end
+    end
   end
 
   def quoted_post(record)
