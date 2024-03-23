@@ -40,7 +40,7 @@ class Tootify
       like_uri = r['uri']
       post_uri = r['value']['subject']['uri']
       repo, collection, rkey = post_uri.split('/')[2..4]
-      
+
       next unless repo == @bluesky.did && collection == 'app.bsky.feed.post'
 
       begin
@@ -70,9 +70,15 @@ class Tootify
     text = expand_facets(record)
 
     if link = link_embed(record)
-      if !text.include?(link)
-        text += ' ' unless text.end_with?(' ')
-        text += link
+      append_link(text, link) unless text.include?(link)
+    end
+
+    if quote_uri = quoted_post(record)
+      repo, collection, rkey = quote_uri.split('/')[2..4]
+
+      if collection == 'app.bsky.feed.post'
+        bsky_url = bsky_post_link(repo, rkey)
+        append_link(text, bsky_url) unless text.include?(bsky_url)
       end
     end
 
@@ -101,5 +107,27 @@ class Tootify
 
   def link_embed(record)
     record['embed'] && record['embed']['external'] && record['embed']['external']['uri']
+  end
+
+  def quoted_post(record)
+    if embed = record['embed']
+      case embed['$type']
+      when 'app.bsky.embed.record'
+        embed['record']['uri']
+      when 'app.bsky.embed.recordWithMedia'
+        embed['record']['record']['uri']
+      else
+        nil
+      end
+    end
+  end
+
+  def append_link(text, link)
+    text << ' ' unless text.end_with?(' ')
+    text << link
+  end
+
+  def bsky_post_link(repo, rkey)
+    "https://bsky.app/profile/#{repo}/post/#{rkey}"
   end
 end
