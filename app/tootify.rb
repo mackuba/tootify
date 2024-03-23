@@ -51,6 +51,12 @@ class Tootify
         next
       end
 
+      if record['value']['reply']
+        puts "Skipping reply"
+        @bluesky.delete_record_at(like_uri)
+        next
+      end
+
       post_to_mastodon(record['value'])
 
       @bluesky.delete_record_at(like_uri)
