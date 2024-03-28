@@ -103,6 +103,10 @@ class Tootify
       end
     end
 
+    if tags = record['tags']
+      text += "\n\n" + tags.map { |t| '#' + t.gsub(' ', '') }.join(' ')
+    end
+
     p @mastodon.post_status(text, media_ids)
   end
 
