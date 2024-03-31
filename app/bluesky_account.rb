@@ -41,17 +41,11 @@ class BlueskyAccount
   end
 
   def fetch_blob(cid)
-    # todo
-    @sky.get_blob('com.atproto.sync.getBlob', { did: @sky.user.did, cid: cid })
+    @sky.get_request('com.atproto.sync.getBlob', { did: @sky.user.did, cid: cid })
   end
 
   def delete_record_at(uri)
     repo, collection, rkey = uri.split('/')[2..4]
-
-    begin
-      @sky.post_request('com.atproto.repo.deleteRecord', { repo: repo, collection: collection, rkey: rkey })
-    rescue JSON::ParserError
-      # todo
-    end
+    @sky.post_request('com.atproto.repo.deleteRecord', { repo: repo, collection: collection, rkey: rkey })
   end
 end

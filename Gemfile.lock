@@ -13,6 +13,7 @@ GEM
   specs:
     addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
+    base64 (0.2.0)
     bigdecimal (3.1.7)
     buftok (0.3.0)
     didkit (0.2.0)
@@ -33,7 +34,8 @@ GEM
       ffi-compiler (>= 1.0, < 2.0)
     io-console (0.7.2)
     json (2.7.1)
-    minisky (0.3.1)
+    minisky (0.4.0)
+      base64 (~> 0.1)
     net-http (0.4.1)
       uri
     oj (3.16.3)
@@ -52,7 +54,7 @@ DEPENDENCIES
   io-console (~> 0.5)
   json (~> 2.5)
   mastodon-api!
-  minisky (~> 0.3)
+  minisky (~> 0.4)
   net-http (~> 0.2)
   uri (~> 0.13)
   yaml (~> 0.1)

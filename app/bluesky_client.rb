@@ -24,25 +24,4 @@ class BlueskyClient
   def save_config
     File.write(CONFIG_FILE, YAML.dump(@config))
   end
-
-  def get_blob(method, params = nil)
-    check_access
-
-    headers = authentication_header(true)
-    url = URI("#{base_url}/#{method}")
-
-    if params && !params.empty?
-      url.query = URI.encode_www_form(params)
-    end
-
-    request = Net::HTTP::Get.new(url, headers)
-    response = make_request(request)
-
-    case response
-    when Net::HTTPSuccess
-      response.body
-    else
-      handle_response(response)
-    end
-  end
 end
