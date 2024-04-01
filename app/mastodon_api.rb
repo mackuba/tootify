@@ -71,7 +71,7 @@ class MastodonAPI
 
     form_data = [
       ['file', data, { :filename => filename, :content_type => content_type }],
-      ['description', alt.to_s]
+      ['description', alt.to_s.force_encoding('ASCII-8BIT')]
     ]
 
     request = Net::HTTP::Post.new(url, headers)
