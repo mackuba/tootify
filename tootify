@@ -28,7 +28,7 @@ end
 
 def print_help
   puts "Usage: #{$PROGRAM_NAME} login mastodon@account | login @bluesky"
-  puts "       #{$PROGRAM_NAME} check"
+  puts "       #{$PROGRAM_NAME} check | watch"
   exit 1
 end
 
