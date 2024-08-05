@@ -34,7 +34,12 @@ class Tootify
   end
 
   def sync
-    likes = @bluesky.fetch_likes
+    begin
+      likes = @bluesky.fetch_likes
+    rescue Minisky::ExpiredTokenError => e
+      @bluesky.log_in
+      likes = @bluesky.fetch_likes
+    end
 
     likes.each do |r|
       like_uri = r['uri']

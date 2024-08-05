@@ -26,6 +26,10 @@ class BlueskyAccount
     @sky.log_in
   end
 
+  def log_in
+    @sky.log_in
+  end
+
   def fetch_likes
     json = @sky.get_request('com.atproto.repo.listRecords', {
       repo: @sky.user.did,
