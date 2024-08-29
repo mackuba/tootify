@@ -9,8 +9,7 @@ Tootify will allow you to do a selective one-way sync of Bluesky posts to your M
 
 The way it works lets you easily pick which skeets you want to turn into toots: it scans your recent posts and checks which of them you have liked yourself, and only those posts are reposted. The self-like is automatically removed afterwards.
 
-> [!CAUTION]
-> This code is currently pretty unstable, so use at your own risk.
+Note: this is an early version so it might be a bit unstable and rough – but I've been using it for a few months and some other people have tried it too and it generally works.
 
 
 ## Installation
