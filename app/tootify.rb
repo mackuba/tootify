@@ -41,6 +41,8 @@ class Tootify
       likes = @bluesky.fetch_likes
     end
 
+    records = []
+
     likes.each do |r|
       like_uri = r['uri']
       post_uri = r['value']['subject']['uri']
@@ -62,8 +64,11 @@ class Tootify
         next
       end
 
-      post_to_mastodon(record['value'])
+      records << [record['value'], like_uri]
+    end
 
+    records.sort_by { |x| x[0]['createdAt'] }.each do |record, like_uri|
+      post_to_mastodon(record)
       @bluesky.delete_record_at(like_uri)
     end
   end
