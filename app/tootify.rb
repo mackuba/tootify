@@ -106,6 +106,10 @@ class Tootify
         cid = image['image']['ref']['$link']
         mime = image['image']['mimeType']
 
+        if alt.length > @mastodon.max_alt_length
+          alt = alt[0...@mastodon.max_alt_length - 3] + "(…)"
+        end
+
         data = @bluesky.fetch_blob(cid)
 
         uploaded_media = @mastodon.upload_media(data, cid, mime, alt)

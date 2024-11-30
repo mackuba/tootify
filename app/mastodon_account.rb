@@ -12,6 +12,10 @@ class MastodonAccount
     @config = File.exist?(CONFIG_FILE) ? YAML.load(File.read(CONFIG_FILE)) : {}
   end
 
+  def max_alt_length
+    1500
+  end
+
   def save_config
     File.write(CONFIG_FILE, YAML.dump(@config))
   end
