@@ -46,10 +46,10 @@ class MastodonAccount
     client.create_app(APP_NAME, 'urn:ietf:wg:oauth:2.0:oob', scopes)
   end
 
-  def post_status(text, media_ids = nil)
+  def post_status(text, media_ids = nil, parent_id = nil)
     instance = @config['handle'].split('@').last
     api = MastodonAPI.new(instance, @config['access_token'])
-    api.post_status(text, media_ids)
+    api.post_status(text, media_ids, parent_id)
   end
 
   def upload_media(data, filename, content_type, alt = nil)

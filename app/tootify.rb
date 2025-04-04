@@ -2,6 +2,7 @@ require 'io/console'
 
 require_relative 'bluesky_account'
 require_relative 'mastodon_account'
+require_relative 'post_history'
 
 class Tootify
   attr_accessor :check_interval
@@ -9,6 +10,7 @@ class Tootify
   def initialize
     @bluesky = BlueskyAccount.new
     @mastodon = MastodonAccount.new
+    @history = PostHistory.new
     @check_interval = 60
   end
 
@@ -58,17 +60,42 @@ class Tootify
         next
       end
 
-      if record['value']['reply']
-        puts "Skipping reply"
-        @bluesky.delete_record_at(like_uri)
-        next
+      if reply = record['value']['reply']
+        parent_uri = reply['parent']['uri']
+        prepo = parent_uri.split('/')[2]
+
+        if prepo != @bluesky.did
+          puts "Skipping reply to someone else"
+          @bluesky.delete_record_at(like_uri)
+          next
+        else
+          # self-reply, we'll try to cross-post it
+        end
       end
 
-      records << [record['value'], like_uri]
+      records << [record['value'], rkey, like_uri]
     end
 
-    records.sort_by { |x| x[0]['createdAt'] }.each do |record, like_uri|
-      post_to_mastodon(record)
+    records.sort_by { |x| x[0]['createdAt'] }.each do |record, rkey, like_uri|
+      mastodon_parent_id = nil
+
+      if reply = record['reply']
+        parent_uri = reply['parent']['uri']
+        prkey = parent_uri.split('/')[4]
+
+        if parent_id = @history[prkey]
+          mastodon_parent_id = parent_id
+        else
+          puts "Skipping reply to a post that wasn't cross-posted"
+          @bluesky.delete_record_at(like_uri)
+          next
+        end
+      end
+
+      response = post_to_mastodon(record, mastodon_parent_id)
+      p response
+
+      @history.add(rkey, response['id'])
       @bluesky.delete_record_at(like_uri)
     end
   end
@@ -80,7 +107,7 @@ class Tootify
     end
   end
 
-  def post_to_mastodon(record)
+  def post_to_mastodon(record, mastodon_parent_id = nil)
     p record
 
     text = expand_facets(record)
@@ -121,7 +148,7 @@ class Tootify
       text += "\n\n" + tags.map { |t| '#' + t.gsub(' ', '') }.join(' ')
     end
 
-    p @mastodon.post_status(text, media_ids)
+    @mastodon.post_status(text, media_ids, mastodon_parent_id)
   end
 
   def expand_facets(record)

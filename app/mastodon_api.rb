@@ -58,9 +58,10 @@ class MastodonAPI
     get_json("/accounts/#{user_id}/statuses", params)
   end
 
-  def post_status(text, media_ids = nil)
+  def post_status(text, media_ids = nil, parent_id = nil)
     params = { status: text }
     params['media_ids[]'] = media_ids if media_ids
+    params['in_reply_to_id'] = parent_id if parent_id
 
     post_json("/statuses", params)
   end
