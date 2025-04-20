@@ -203,7 +203,11 @@ class Tootify
       when 'app.bsky.embed.images'
         embed['images']
       when 'app.bsky.embed.recordWithMedia'
-        embed['media']['images']
+        if embed['media']['$type'] == 'app.bsky.embed.images'
+          embed['media']['images']
+        else
+          nil
+        end
       else
         nil
       end
