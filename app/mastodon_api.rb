@@ -22,6 +22,8 @@ class MastodonAPI
     end
   end
 
+  MEDIA_CHECK_INTERVAL = 5.0
+
   attr_accessor :access_token
 
   def initialize(host, access_token = nil)
@@ -82,11 +84,22 @@ class MastodonAPI
       http.request(request)
     end
 
-    if response.code.to_i / 100 == 2
+    json = if response.code.to_i / 100 == 2
       JSON.parse(response.body)
     else
       raise APIError.new(response)
     end
+
+    while json['url'].nil?
+      sleep MEDIA_CHECK_INTERVAL
+      json = get_media(json['id'])
+    end
+
+    json
+  end
+
+  def get_media(media_id)
+    get_json("/media/#{media_id}")
   end
 
   def get_json(path, params = {})

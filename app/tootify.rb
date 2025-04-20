@@ -128,10 +128,10 @@ class Tootify
     if images = attached_images(record)
       media_ids = []
 
-      images.each do |image|
-        alt = image['alt']
-        cid = image['image']['ref']['$link']
-        mime = image['image']['mimeType']
+      images.each do |embed|
+        alt = embed['alt']
+        cid = embed['image']['ref']['$link']
+        mime = embed['image']['mimeType']
 
         if alt.length > @mastodon.max_alt_length
           alt = alt[0...@mastodon.max_alt_length - 3] + "(…)"
@@ -142,6 +142,19 @@ class Tootify
         uploaded_media = @mastodon.upload_media(data, cid, mime, alt)
         media_ids << uploaded_media['id']
       end
+    elsif embed = attached_video(record)
+      alt = embed['alt']
+      cid = embed['video']['ref']['$link']
+      mime = embed['video']['mimeType']
+
+      if alt.length > @mastodon.max_alt_length
+        alt = alt[0...@mastodon.max_alt_length - 3] + "(…)"
+      end
+
+      data = @bluesky.fetch_blob(cid)
+
+      uploaded_media = @mastodon.upload_media(data, cid, mime, alt)
+      media_ids = [uploaded_media['id']]
     end
 
     if tags = record['tags']
@@ -205,6 +218,23 @@ class Tootify
       when 'app.bsky.embed.recordWithMedia'
         if embed['media']['$type'] == 'app.bsky.embed.images'
           embed['media']['images']
+        else
+          nil
+        end
+      else
+        nil
+      end
+    end
+  end
+
+  def attached_video(record)
+    if embed = record['embed']
+      case embed['$type']
+      when 'app.bsky.embed.video'
+        embed
+      when 'app.bsky.embed.recordWithMedia'
+        if embed['media']['$type'] == 'app.bsky.embed.video'
+          embed['media']
         else
           nil
         end
