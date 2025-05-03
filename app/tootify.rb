@@ -274,8 +274,14 @@ class Tootify
   end
 
   def append_link(text, link)
-    text << ' ' unless text.end_with?(' ')
-    text << link
+    if link =~ /^https:\/\/bsky\.app\/profile\/.+\/post\/.+/
+      text << "\n" unless text.end_with?("\n")
+      text << "\n"
+      text << "RE: " + link
+    else
+      text << ' ' unless text.end_with?(' ')
+      text << link
+    end
   end
 
   def bsky_post_link(repo, rkey)
