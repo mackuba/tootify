@@ -1,18 +1,30 @@
 require 'io/console'
+require 'yaml'
 
 require_relative 'bluesky_account'
 require_relative 'mastodon_account'
 require_relative 'post_history'
 
 class Tootify
+  CONFIG_FILE = File.expand_path(File.join(__dir__, '..', 'config', 'tootify.yml'))
+
   attr_accessor :check_interval
 
   def initialize
     @bluesky = BlueskyAccount.new
     @mastodon = MastodonAccount.new
     @history = PostHistory.new
+    @config = load_config
     @check_interval = 60
   end
+
+  def load_config
+    if File.exist?(CONFIG_FILE)
+      YAML.load(File.read(CONFIG_FILE))
+    else
+      {}
+    end
+  end 
 
   def login_bluesky(handle)
     handle = handle.gsub(/^@/, '')
@@ -120,8 +132,17 @@ class Tootify
       repo, collection, rkey = quote_uri.split('/')[2..4]
 
       if collection == 'app.bsky.feed.post'
-        bsky_url = bsky_post_link(repo, rkey)
-        append_link(text, bsky_url) unless text.include?(bsky_url)
+        link_to_append = bsky_post_link(repo, rkey)
+
+        if @config['extract_link_from_quotes']
+          quoted_record = fetch_record_by_at_uri(quote_uri)
+
+          if link_from_quote = link_embed(quoted_record)
+            link_to_append = link_from_quote
+          end
+        end
+
+        append_link(text, link_to_append) unless text.include?(link_to_append)
       end
     end
 
@@ -162,6 +183,14 @@ class Tootify
     end
 
     @mastodon.post_status(text, media_ids, mastodon_parent_id)
+  end
+
+  def fetch_record_by_at_uri(quote_uri)
+    repo, collection, rkey = quote_uri.split('/')[2..4]
+    pds = DID.new(repo).get_document.pds_endpoint
+    sky = Minisky.new(pds, nil)
+    resp = sky.get_request('com.atproto.repo.getRecord', { repo: repo, collection: collection, rkey: rkey })
+    resp['value']
   end
 
   def expand_facets(record)

@@ -61,7 +61,7 @@ DEPENDENCIES
   io-console (~> 0.5)
   json (~> 2.5)
   mastodon-api!
-  minisky (~> 0.4)
+  minisky (~> 0.5)
   net-http (~> 0.2)
   uri (~> 0.13)
   yaml (~> 0.1)
