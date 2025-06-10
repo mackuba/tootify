@@ -55,7 +55,7 @@ Tootify stores configs and data in the `config` folder:
 
 * `bluesky.yml` – created when you log in, stores Bluesky user ID/password and access tokens
 * `mastodon.yml` – created when you log in, stores Mastodon user ID/password and access tokens
-* `history.csv` – stores a mapping between Bluesky and Mastodon post IDs; used for reply references in threads
+* `history.sqlite3` – stores a mapping between Bluesky and Mastodon post IDs; used for reply references in threads
 * `tootify.yml` - optional additional configuration
 
 The config in `tootify.yml` currently supports one option:
