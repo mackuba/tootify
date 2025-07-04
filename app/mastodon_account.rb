@@ -1,6 +1,4 @@
-require 'mastodon'
 require 'yaml'
-
 require_relative 'mastodon_api'
 
 class MastodonAccount
@@ -22,11 +20,11 @@ class MastodonAccount
 
   def oauth_login(handle)
     instance = handle.split('@').last
-    app_response = register_oauth_app(instance, OAUTH_SCOPES)
+    app_response = register_oauth_app(instance)
 
     api = MastodonAPI.new(instance)
 
-    login_url = api.generate_oauth_login_url(app_response.client_id, OAUTH_SCOPES)
+    login_url = api.generate_oauth_login_url(app_response['client_id'], OAUTH_SCOPES)
 
     puts "Open this URL in your web browser and authorize the app:"
     puts
@@ -38,7 +36,7 @@ class MastodonAccount
     print ">> "
     code = STDIN.gets.chomp
 
-    json = api.complete_oauth_login(app_response.client_id, app_response.client_secret, code)
+    json = api.complete_oauth_login(app_response['client_id'], app_response['client_secret'], code)
 
     api.access_token = json['access_token']
     info = api.account_info
@@ -49,9 +47,9 @@ class MastodonAccount
     save_config
   end
 
-  def register_oauth_app(instance, scopes)
-    client = Mastodon::REST::Client.new(base_url: "https://#{instance}")
-    client.create_app(APP_NAME, MastodonAPI::CODE_REDIRECT_URI, scopes)
+  def register_oauth_app(instance)
+    api = MastodonAPI.new(instance)
+    api.register_oauth_app(APP_NAME, OAUTH_SCOPES)
   end
 
   def post_status(text, media_ids = nil, parent_id = nil)

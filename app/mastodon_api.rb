@@ -34,6 +34,16 @@ class MastodonAPI
     @access_token = access_token
   end
 
+  def register_oauth_app(app_name, scopes)
+    params = {
+      client_name: app_name,
+      redirect_uris: CODE_REDIRECT_URI,
+      scopes: scopes
+    }
+
+    post_json("https://#{@host}/api/v1/apps", params)
+  end
+
   def generate_oauth_login_url(client_id, scopes)
     login_url = URI("https://#{@host}/oauth/authorize")
 
