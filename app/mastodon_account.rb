@@ -2,7 +2,7 @@ require 'yaml'
 require_relative 'mastodon_api'
 
 class MastodonAccount
-  APP_NAME = "tootify"
+  APP_NAME = "Tootify"
   CONFIG_FILE = File.expand_path(File.join(__dir__, '..', 'config', 'mastodon.yml'))
   OAUTH_SCOPES = 'read:accounts read:statuses write:media write:statuses'
 
