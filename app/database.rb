@@ -13,7 +13,7 @@ module Database
 
   def self.run_migrations
     ActiveRecord::Migration.verbose = false
-    migration_context = ActiveRecord::MigrationContext.new(MIGRATIONS_PATH, ActiveRecord::SchemaMigration)
+    migration_context = ActiveRecord::MigrationContext.new(MIGRATIONS_PATH)
     migration_context.migrate
   end
 end
