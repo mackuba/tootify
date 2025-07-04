@@ -130,8 +130,15 @@ class Tootify
         if @config['extract_link_from_quotes']
           quoted_record = fetch_record_by_at_uri(quote_uri)
 
-          if link_from_quote = link_embed(quoted_record)
-            link_to_append = link_from_quote
+          quote_link = link_embed(quoted_record)
+
+          if quote_link.nil?
+            text_links = links_from_facets(quoted_record)
+            quote_link = text_links.first if text_links.length == 1
+          end
+
+          if quote_link
+            link_to_append = quote_link
           end
         end
 
@@ -206,6 +213,20 @@ class Tootify
     bytes.pack('C*').force_encoding('UTF-8')
   end
 
+  def links_from_facets(record)
+    links = []
+
+    if facets = record['facets']
+      facets.each do |f|
+        if link = f['features'].detect { |ft| ft['$type'] == 'app.bsky.richtext.facet#link' }
+          links << link['uri']
+        end
+      end
+    end
+
+    links.reject { |x| x.start_with?('https://bsky.app/hashtag/') }
+  end
+
   def link_embed(record)
     if embed = record['embed']
       case embed['$type']
@@ -267,7 +288,7 @@ class Tootify
   end
 
   def append_link(text, link)
-    if link =~ /^https:\/\/bsky\.app\/profile\/.+\/post\/.+/
+    if link =~ %r{^https://bsky\.app/profile/.+/post/.+}
       text << "\n" unless text.end_with?("\n")
       text << "\n"
       text << "RE: " + link
