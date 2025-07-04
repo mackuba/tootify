@@ -73,9 +73,12 @@ class MastodonAPI
     headers = { 'Authorization' => "Bearer #{@access_token}" }
 
     form_data = [
-      ['file', data, { :filename => filename, :content_type => content_type }],
-      ['description', alt.to_s.force_encoding('ASCII-8BIT')]
+      ['file', data, { :filename => filename, :content_type => content_type }]
     ]
+
+    if alt
+      form_data << ['description', alt.force_encoding('ASCII-8BIT')]
+    end
 
     request = Net::HTTP::Post.new(url, headers)
     request.set_form(form_data, 'multipart/form-data')

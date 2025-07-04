@@ -154,7 +154,7 @@ class Tootify
         cid = embed['image']['ref']['$link']
         mime = embed['image']['mimeType']
 
-        if alt.length > @mastodon.max_alt_length
+        if alt && alt.length > @mastodon.max_alt_length
           alt = alt[0...@mastodon.max_alt_length - 3] + "(…)"
         end
 
@@ -168,7 +168,7 @@ class Tootify
       cid = embed['video']['ref']['$link']
       mime = embed['video']['mimeType']
 
-      if alt.length > @mastodon.max_alt_length
+      if alt && alt.length > @mastodon.max_alt_length
         alt = alt[0...@mastodon.max_alt_length - 3] + "(…)"
       end
 
