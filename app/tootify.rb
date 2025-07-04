@@ -59,6 +59,12 @@ class Tootify
 
       next unless repo == @bluesky.did && collection == 'app.bsky.feed.post'
 
+      if post = Post.find_by(bluesky_rkey: rkey)
+        puts "Post #{rkey} was already cross-posted, skipping"
+        @bluesky.delete_record_at(like_uri)
+        next
+      end
+
       begin
         record = @bluesky.fetch_record(repo, collection, rkey)
       rescue Minisky::ClientErrorResponse => e
