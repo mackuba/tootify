@@ -26,7 +26,7 @@ class Tootify
     end
   end 
 
-  def login_bluesky(handle)
+  def login_to_bluesky(handle)
     handle = handle.gsub(/^@/, '')
 
     print "App password: "
@@ -36,15 +36,8 @@ class Tootify
     @bluesky.login_with_password(handle, password)
   end
 
-  def login_mastodon(handle)
-    print "Email: "
-    email = STDIN.gets.chomp
-
-    print "Password: "
-    password = STDIN.noecho(&:gets).chomp
-    puts
-
-    @mastodon.oauth_login(handle, email, password)
+  def login_to_mastodon(handle)
+    @mastodon.oauth_login(handle)
   end
 
   def sync

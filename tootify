@@ -36,9 +36,9 @@ def login(name)
   app = Tootify.new
 
   if name =~ /\A[^@]+@[^@]+\z/
-    app.login_mastodon(name)
+    app.login_to_mastodon(name)
   elsif name =~ /\A@[^@]+\z/
-    app.login_bluesky(name)
+    app.login_to_bluesky(name)
   elsif name.nil?
     print_help
   else

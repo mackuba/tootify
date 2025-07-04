@@ -20,17 +20,25 @@ class MastodonAccount
     File.write(CONFIG_FILE, YAML.dump(@config))
   end
 
-  def oauth_login(handle, email, password)
+  def oauth_login(handle)
     instance = handle.split('@').last
     app_response = register_oauth_app(instance, OAUTH_SCOPES)
 
     api = MastodonAPI.new(instance)
 
-    json = api.oauth_login_with_password(
-      app_response.client_id,
-      app_response.client_secret,
-      email, password, OAUTH_SCOPES
-    )
+    login_url = api.generate_oauth_login_url(app_response.client_id, OAUTH_SCOPES)
+
+    puts "Open this URL in your web browser and authorize the app:"
+    puts
+    puts login_url
+    puts
+    puts "Then, enter the received code here:"
+    puts
+
+    print ">> "
+    code = STDIN.gets.chomp
+
+    json = api.complete_oauth_login(app_response.client_id, app_response.client_secret, code)
 
     api.access_token = json['access_token']
     info = api.account_info
@@ -43,7 +51,7 @@ class MastodonAccount
 
   def register_oauth_app(instance, scopes)
     client = Mastodon::REST::Client.new(base_url: "https://#{instance}")
-    client.create_app(APP_NAME, 'urn:ietf:wg:oauth:2.0:oob', scopes)
+    client.create_app(APP_NAME, MastodonAPI::CODE_REDIRECT_URI, scopes)
   end
 
   def post_status(text, media_ids = nil, parent_id = nil)

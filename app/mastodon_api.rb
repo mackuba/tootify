@@ -3,6 +3,8 @@ require 'net/http'
 require 'uri'
 
 class MastodonAPI
+  CODE_REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
+
   class UnauthenticatedError < StandardError
   end
 
@@ -32,14 +34,26 @@ class MastodonAPI
     @access_token = access_token
   end
 
-  def oauth_login_with_password(client_id, client_secret, email, password, scopes)
+  def generate_oauth_login_url(client_id, scopes)
+    login_url = URI("https://#{@host}/oauth/authorize")
+
+    login_url.query = URI.encode_www_form(
+      client_id: client_id,
+      redirect_uri: CODE_REDIRECT_URI,
+      response_type: 'code',
+      scope: scopes
+    )
+
+    login_url
+  end
+
+  def complete_oauth_login(client_id, client_secret, code)
     params = {
       client_id: client_id,
       client_secret: client_secret,
-      grant_type: 'password',
-      scope: scopes,
-      username: email,
-      password: password
+      redirect_uri: CODE_REDIRECT_URI,
+      grant_type: 'authorization_code',
+      code: code
     }
 
     post_json("https://#{@host}/oauth/token", params)
