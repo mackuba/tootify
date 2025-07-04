@@ -55,12 +55,13 @@ Tootify stores configs and data in the `config` folder:
 
 * `bluesky.yml` – created when you log in, stores Bluesky user ID/password and access tokens
 * `mastodon.yml` – created when you log in, stores Mastodon user ID/password and access tokens
-* `history.csv` – stores a mapping between Bluesky and Mastodon post IDs; used for reply references in threads
 * `tootify.yml` - optional additional configuration
 
 The config in `tootify.yml` currently supports one option:
 
 - `extract_link_from_quotes: true` – if enabled, posts which are quotes of someone else's post which includes a link will be "collapsed" into a normal post that just includes that link directly without the quote (so the link card on Mastodon will show info about the link and not the quoted bsky.app post)
+
+There is also an SQLite database file that's automatically created in `db/history.sqlite3`. It stores a mapping between Bluesky and Mastodon post IDs, and is used to maintain reply references in threads.
 
 
 ## Credits

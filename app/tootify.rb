@@ -2,8 +2,9 @@ require 'io/console'
 require 'yaml'
 
 require_relative 'bluesky_account'
+require_relative 'database'
 require_relative 'mastodon_account'
-require_relative 'post_history'
+require_relative 'post'
 
 class Tootify
   CONFIG_FILE = File.expand_path(File.join(__dir__, '..', 'config', 'tootify.yml'))
@@ -13,9 +14,10 @@ class Tootify
   def initialize
     @bluesky = BlueskyAccount.new
     @mastodon = MastodonAccount.new
-    @history = PostHistory.new
     @config = load_config
     @check_interval = 60
+
+    Database.init
   end
 
   def load_config
@@ -86,10 +88,10 @@ class Tootify
 
       if reply = record['reply']
         parent_uri = reply['parent']['uri']
-        prkey = parent_uri.split('/')[4]
+        parent_rkey = parent_uri.split('/')[4]
 
-        if parent_id = @history[prkey]
-          mastodon_parent_id = parent_id
+        if parent_post = Post.find_by(bluesky_rkey: parent_rkey)
+          mastodon_parent_id = parent_post.mastodon_id
         else
           puts "Skipping reply to a post that wasn't cross-posted"
           @bluesky.delete_record_at(like_uri)
@@ -100,7 +102,8 @@ class Tootify
       response = post_to_mastodon(record, mastodon_parent_id)
       p response
 
-      @history.add(rkey, response['id'])
+      Post.create!(bluesky_rkey: rkey, mastodon_id: response['id'])
+
       @bluesky.delete_record_at(like_uri)
     end
   end
