@@ -60,7 +60,7 @@ class Tootify
       next unless repo == @bluesky.did && collection == 'app.bsky.feed.post'
 
       if post = Post.find_by(bluesky_rkey: rkey)
-        puts "Post #{rkey} was already cross-posted, skipping"
+        log "Post #{rkey} was already cross-posted, skipping"
         @bluesky.delete_record_at(like_uri)
         next
       end
@@ -68,7 +68,7 @@ class Tootify
       begin
         record = @bluesky.fetch_record(repo, collection, rkey)
       rescue Minisky::ClientErrorResponse => e
-        puts "Record not found: #{post_uri}"
+        log "Record not found: #{post_uri}"
         @bluesky.delete_record_at(like_uri)
         next
       end
@@ -78,7 +78,7 @@ class Tootify
         prepo = parent_uri.split('/')[2]
 
         if prepo != @bluesky.did
-          puts "Skipping reply to someone else"
+          log "Skipping reply to someone else"
           @bluesky.delete_record_at(like_uri)
           next
         else
@@ -99,14 +99,14 @@ class Tootify
         if parent_post = Post.find_by(bluesky_rkey: parent_rkey)
           mastodon_parent_id = parent_post.mastodon_id
         else
-          puts "Skipping reply to a post that wasn't cross-posted"
+          log "Skipping reply to a post that wasn't cross-posted"
           @bluesky.delete_record_at(like_uri)
           next
         end
       end
 
       response = post_to_mastodon(record, mastodon_parent_id)
-      p response
+      log(response)
 
       Post.create!(bluesky_rkey: rkey, mastodon_id: response['id'])
 
@@ -122,7 +122,7 @@ class Tootify
   end
 
   def post_to_mastodon(record, mastodon_parent_id = nil)
-    p record
+    log(record)
 
     text = expand_facets(record)
 
@@ -309,5 +309,10 @@ class Tootify
 
   def bsky_post_link(repo, rkey)
     "https://bsky.app/profile/#{repo}/post/#{rkey}"
+  end
+
+  def log(obj)
+    text = obj.is_a?(String) ? obj : obj.inspect
+    puts "[#{Time.now}] #{text}"
   end
 end
