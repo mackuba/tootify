@@ -19,6 +19,11 @@ class MastodonAccount
   end
 
   def oauth_login(handle)
+    unless STDIN.tty?
+      puts "This command must be run in an interactive terminal."
+      exit 1
+    end
+
     instance = handle.split('@').last
     app_response = register_oauth_app(instance)
 

@@ -13,6 +13,11 @@ class TwitterAccount
   end
 
   def login(handle)
+    unless STDIN.tty?
+      puts "This command must be run in an interactive terminal."
+      exit 1
+    end
+
     puts "To use Tootify with Twitter, you need to provide your Twitter API v2 keys."
     puts "You can get these by applying for a developer account at https://developer.twitter.com/"
     puts
