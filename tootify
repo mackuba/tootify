@@ -29,7 +29,7 @@ def run(argv)
 end
 
 def print_help
-  puts "Usage: #{$PROGRAM_NAME} login mastodon@account | login @bluesky"
+  puts "Usage: #{$PROGRAM_NAME} login mastodon@account | login @bluesky | login @twitter"
   puts "       #{$PROGRAM_NAME} check | watch"
   exit 1
 end
@@ -39,8 +39,10 @@ def login(name)
 
   if name =~ /\A[^@]+@[^@]+\z/
     app.login_to_mastodon(name)
-  elsif name =~ /\A@[^@]+\z/
+  elsif name =~ /\A@.+\.bsky\..+\z/
     app.login_to_bluesky(name)
+  elsif name =~ /\A@\w{1,15}\z/
+    app.login_to_twitter(name)
   elsif name.nil?
     print_help
   else

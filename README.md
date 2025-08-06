@@ -29,10 +29,13 @@ At the moment:
 
 ## Usage
 
-First, log in to the two accounts:
+First, log in to the accounts you want to use:
 
     ./tootify login johnmastodon@example.com
     ./tootify login @alf.bsky.team
+    ./tootify login @twitterdev
+
+For Twitter, you will be prompted to enter your API keys. You can get these by applying for a developer account at https://developer.twitter.com/.
 
 Press like on the post(s) on Bluesky that you want to be synced to Mastodon.
 
@@ -57,9 +60,10 @@ Tootify stores configs and data in the `config` folder:
 * `mastodon.yml` – created when you log in, stores Mastodon user ID/password and access tokens
 * `tootify.yml` - optional additional configuration
 
-The config in `tootify.yml` currently supports one option:
+The config in `tootify.yml` supports the following options:
 
 - `extract_link_from_quotes: true` – if enabled, posts which are quotes of someone else's post which includes a link will be "collapsed" into a normal post that just includes that link directly without the quote (so the link card on Mastodon will show info about the link and not the quoted bsky.app post)
+- `services: [mastodon, twitter]` – an array of services to post to. Can be `[mastodon]`, `[twitter]`, or `[mastodon, twitter]`. If omitted, it defaults to `[mastodon]`.
 
 There is also an SQLite database file that's automatically created in `db/history.sqlite3`. It stores a mapping between Bluesky and Mastodon post IDs, and is used to maintain reply references in threads.
 

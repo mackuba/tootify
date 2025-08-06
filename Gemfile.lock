@@ -38,6 +38,7 @@ GEM
     net-http (0.4.1)
       uri
     securerandom (0.4.1)
+    simple_oauth (0.3.1)
     sqlite3 (2.7.1)
       mini_portile2 (~> 2.8.0)
     sqlite3 (2.7.1-aarch64-linux-gnu)
@@ -62,6 +63,7 @@ DEPENDENCIES
   json (~> 2.5)
   minisky (~> 0.5)
   net-http (~> 0.2)
+  simple_oauth
   sqlite3 (~> 2.7)
   uri (~> 0.13)
   yaml (~> 0.1)

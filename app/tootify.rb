@@ -4,6 +4,7 @@ require 'yaml'
 require_relative 'bluesky_account'
 require_relative 'database'
 require_relative 'mastodon_account'
+require_relative 'twitter_account'
 require_relative 'post'
 
 class Tootify
@@ -14,6 +15,7 @@ class Tootify
   def initialize
     @bluesky = BlueskyAccount.new
     @mastodon = MastodonAccount.new
+    @twitter = TwitterAccount.new
     @config = load_config
     @check_interval = 60
 
@@ -40,6 +42,10 @@ class Tootify
 
   def login_to_mastodon(handle)
     @mastodon.oauth_login(handle)
+  end
+
+  def login_to_twitter(handle)
+    @twitter.login(handle)
   end
 
   def sync
@@ -105,13 +111,29 @@ class Tootify
         end
       end
 
-      response = post_to_mastodon(record, mastodon_parent_id)
-      log(response)
+      mastodon_id = nil
+      twitter_id = nil
 
-      Post.create!(bluesky_rkey: rkey, mastodon_id: response['id'])
+      if services.include?('mastodon')
+        response = post_to_mastodon(record, mastodon_parent_id)
+        log(response)
+        mastodon_id = response['id']
+      end
+
+      if services.include?('twitter')
+        response = post_to_twitter(record)
+        log(response)
+        twitter_id = response['id']
+      end
+
+      Post.create!(bluesky_rkey: rkey, mastodon_id: mastodon_id, twitter_id: twitter_id)
 
       @bluesky.delete_record_at(like_uri)
     end
+  end
+
+  def services
+    @config['services'] || ['mastodon']
   end
 
   def watch
@@ -192,6 +214,79 @@ class Tootify
     end
 
     @mastodon.post_status(text, media_ids, mastodon_parent_id)
+  end
+
+  def post_to_twitter(record)
+    log(record)
+
+    text = expand_facets(record)
+
+    if link = link_embed(record)
+      append_link(text, link) unless text.include?(link)
+    end
+
+    if quote_uri = quoted_post(record)
+      repo, collection, rkey = quote_uri.split('/')[2..4]
+
+      if collection == 'app.bsky.feed.post'
+        link_to_append = bsky_post_link(repo, rkey)
+
+        if @config['extract_link_from_quotes']
+          quoted_record = fetch_record_by_at_uri(quote_uri)
+
+          quote_link = link_embed(quoted_record)
+
+          if quote_link.nil?
+            text_links = links_from_facets(quoted_record)
+            quote_link = text_links.first if text_links.length == 1
+          end
+
+          if quote_link
+            link_to_append = quote_link
+          end
+        end
+
+        append_link(text, link_to_append) unless text.include?(link_to_append)
+      end
+    end
+
+    if images = attached_images(record)
+      media_ids = []
+
+      images.each do |embed|
+        alt = embed['alt']
+        cid = embed['image']['ref']['$link']
+        mime = embed['image']['mimeType']
+
+        if alt && alt.length > @twitter.max_alt_length
+          alt = alt[0...@twitter.max_alt_length - 3] + "(…)"
+        end
+
+        data = @bluesky.fetch_blob(cid)
+
+        uploaded_media = @twitter.upload_media(data, cid, mime, alt)
+        media_ids << uploaded_media
+      end
+    elsif embed = attached_video(record)
+        alt = embed['alt']
+        cid = embed['video']['ref']['$link']
+        mime = embed['video']['mimeType']
+
+        if alt && alt.length > @twitter.max_alt_length
+            alt = alt[0...@twitter.max_alt_length - 3] + "(…)"
+        end
+
+        data = @bluesky.fetch_blob(cid)
+
+        uploaded_media = @twitter.upload_media(data, cid, mime, alt)
+        media_ids = [uploaded_media]
+    end
+
+    if tags = record['tags']
+      text += "\n\n" + tags.map { |t| '#' + t.gsub(' ', '') }.join(' ')
+    end
+
+    @twitter.post_status(text, media_ids)
   end
 
   def fetch_record_by_at_uri(quote_uri)
