@@ -135,10 +135,25 @@ class Tootify
 
       if collection == 'app.bsky.feed.post'
         link_to_append = bsky_post_link(repo, rkey)
+        instance_info = @mastodon.instance_info
 
-        if @config['extract_link_from_quotes']
+        if instance_info.dig('api_versions', 'mastodon').to_i >= 7
           quoted_record = fetch_record_by_at_uri(quote_uri)
 
+          # TODO: we need to wait for Bridgy to add support for quote_authorizations
+          quoted_post_url = quoted_record['bridgyOriginalUrl'] #|| "https://bsky.brid.gy/convert/ap/#{quote_uri}"
+
+          if quoted_post_url && (local_post = @mastodon.search_post_by_url(quoted_post_url))
+            quote_policy = local_post.dig('quote_approval', 'current_user')
+
+            if quote_policy == 'automatic' || quote_policy == 'manual'
+              quote_id = local_post['id']
+            end
+          end
+        end
+
+        if !quote_id && @config['extract_link_from_quotes']
+          quoted_record ||= fetch_record_by_at_uri(quote_uri)
           quote_link = link_embed(quoted_record)
 
           if quote_link.nil?
@@ -151,7 +166,7 @@ class Tootify
           end
         end
 
-        append_link(text, link_to_append) unless text.include?(link_to_append)
+        append_link(text, link_to_append) unless quote_id || text.include?(link_to_append)
       end
     end
 
@@ -191,7 +206,7 @@ class Tootify
       text += "\n\n" + tags.map { |t| '#' + t.gsub(' ', '') }.join(' ')
     end
 
-    @mastodon.post_status(text, media_ids, mastodon_parent_id)
+    @mastodon.post_status(text, media_ids: media_ids, parent_id: mastodon_parent_id, quoted_status_id: quote_id)
   end
 
   def fetch_record_by_at_uri(quote_uri)

@@ -4,7 +4,14 @@ require_relative 'mastodon_api'
 class MastodonAccount
   APP_NAME = "Tootify"
   CONFIG_FILE = File.expand_path(File.join(__dir__, '..', 'config', 'mastodon.yml'))
-  OAUTH_SCOPES = 'read:accounts read:statuses write:media write:statuses'
+
+  OAUTH_SCOPES = [
+    'read:accounts',
+    'read:statuses',
+    'read:search',
+    'write:media',
+    'write:statuses'
+  ].join(' ')
 
   def initialize
     @config = File.exist?(CONFIG_FILE) ? YAML.load(File.read(CONFIG_FILE)) : {}
@@ -52,10 +59,16 @@ class MastodonAccount
     api.register_oauth_app(APP_NAME, OAUTH_SCOPES)
   end
 
-  def post_status(text, media_ids = nil, parent_id = nil)
+  def instance_info
     instance = @config['handle'].split('@').last
     api = MastodonAPI.new(instance, @config['access_token'])
-    api.post_status(text, media_ids, parent_id)
+    api.instance_info
+  end
+
+  def post_status(text, media_ids: nil, parent_id: nil, quoted_status_id: nil)
+    instance = @config['handle'].split('@').last
+    api = MastodonAPI.new(instance, @config['access_token'])
+    api.post_status(text, media_ids: media_ids, parent_id: parent_id, quoted_status_id: quoted_status_id)
   end
 
   def upload_media(data, filename, content_type, alt = nil)
@@ -63,4 +76,10 @@ class MastodonAccount
     api = MastodonAPI.new(instance, @config['access_token'])
     api.upload_media(data, filename, content_type, alt)
   end
+
+  def search_post_by_url(url)
+    instance = @config['handle'].split('@').last
+    api = MastodonAPI.new(instance, @config['access_token'])
+    api.search_post_by_url(url)
+  end    
 end

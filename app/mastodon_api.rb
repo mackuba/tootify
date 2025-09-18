@@ -74,6 +74,10 @@ class MastodonAPI
     get_json("/accounts/verify_credentials")
   end
 
+  def instance_info
+    get_json("https://#{@host}/api/v2/instance")
+  end
+
   def lookup_account(username)
     json = get_json("/accounts/lookup", { acct: username })
     raise UnexpectedResponseError.new unless json.is_a?(Hash) && json['id'].is_a?(String)
@@ -84,10 +88,11 @@ class MastodonAPI
     get_json("/accounts/#{user_id}/statuses", params)
   end
 
-  def post_status(text, media_ids = nil, parent_id = nil)
+  def post_status(text, media_ids: nil, parent_id: nil, quoted_status_id: nil)
     params = { status: text }
     params['media_ids[]'] = media_ids if media_ids
     params['in_reply_to_id'] = parent_id if parent_id
+    params['quoted_status_id'] = quoted_status_id if quoted_status_id
 
     post_json("/statuses", params)
   end
@@ -127,6 +132,16 @@ class MastodonAPI
 
   def get_media(media_id)
     get_json("/media/#{media_id}")
+  end
+
+  def search_post_by_url(url)
+    json = get_json("https://#{@host}/api/v2/search", {
+      q: url,
+      type: 'statuses',
+      resolve: true
+    })
+
+    json['statuses'] && json['statuses'][0]
   end
 
   def get_json(path, params = {})
